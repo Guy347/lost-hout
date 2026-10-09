@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXEL LOST & FOUND - ระบบติดตามของหายเรโทร</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Retro Pixel & Thai Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            font-family: 'Chakra Petch', sans-serif;
+            image-rendering: pixelated;
+        }
+
+        .font-pixel {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .font-retro {
+            font-family: 'VT323', monospace;
+        }
+
+        /* Retro Pixel Borders & Shadows */
+        .pixel-corners {
+            clip-path: polygon(
+                0 8px, 4px 8px, 4px 4px, 8px 4px, 8px 0,
+                calc(100% - 8px) 0, calc(100% - 8px) 4px, calc(100% - 4px) 4px, calc(100% - 4px) 8px, 100% 8px,
+                100% calc(100% - 8px), calc(100% - 4px) calc(100% - 8px), calc(100% - 4px) calc(100% - 4px), calc(100% - 8px) calc(100% - 4px), calc(100% - 8px) 100%,
+                8px 100%, 8px calc(100% - 4px), 4px calc(100% - 4px), 4px calc(100% - 8px), 0 calc(100% - 8px)
+            );
+        }
+
+        .pixel-box {
+            background-color: #241942;
+            border: 4px solid #000;
+            box-shadow: 4px 4px 0px #000, inset -4px -4px 0px rgba(0,0,0,0.4), inset 4px 4px 0px rgba(255,255,255,0.15);
+        }
+
+        .pixel-box-light {
+            background-color: #2e1f54;
+            border: 3px solid #000;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        .pixel-btn {
+            border: 3px solid #000;
+            box-shadow: 0px 4px 0px #000;
+            transition: all 0.08s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .pixel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 6px 0px #000;
+        }
+
+        .pixel-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0px 1px 0px #000;
+        }
+
+        .pixel-btn-primary {
+            background-color: #00e5ff;
+            color: #000;
+        }
+
+        .pixel-btn-success {
+            background-color: #00ff66;
+            color: #000;
+        }
+
+        .pixel-btn-danger {
+            background-color: #ff0055;
+            color: #fff;
+        }
+
+        .pixel-btn-warning {
+            background-color: #ffcc00;
+            color: #000;
+        }
+
+        .pixel-input {
+            background-color: #150d2a;
+            border: 3px solid #000;
+            color: #00f0ff;
+            box-shadow: inset 2px 2px 0px rgba(0,0,0,0.8);
+        }
+
+        .pixel-input:focus {
+            outline: none;
+            border-color: #00e5ff;
+            box-shadow: inset 2px 2px 0px rgba(0,0,0,0.8), 0 0 8px rgba(0, 229, 255, 0.5);
+        }
+
+        /* Retro CRT Scanline Overlay */
+        .crt-overlay {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #150d2a;
+            border: 2px solid #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff0055;
+            border: 2px solid #000;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00e5ff;
+        }
+
+        @keyframes pixelPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-pulse-pixel {
+            animation: pixelPulse 1.5s infinite steps(2);
+        }
+    </style>
+</head>
+<body class="bg-[#120a21] text-gray-100 min-h-screen flex flex-col relative selection:bg-pink-500 selection:text-white">
+
+    <div class="crt-overlay fixed inset-0 z-50"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="container mx-auto px-4 py-6 flex-1 max-w-6xl z-10">
+
+        <!-- HEADER BANNER -->
+        <header class="pixel-box p-4 md:p-6 mb-6 rounded-lg bg-gradient-to-r from-[#241942] via-[#371d5c] to-[#241942] relative overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-pink-600 border-4 border-black flex items-center justify-center text-yellow-300 text-2xl shadow-[4px_4px_0px_#000] animate-pulse-pixel">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-pixel text-lg md:text-2xl text-yellow-400 drop-shadow-[2px_2px_0px_#000]">
+                                PIXEL LOST & FOUND
+                            </h1>
+                        </div>
+                        <p class="text-xs md:text-sm text-cyan-300 font-mono mt-1">
+                            <i class="fa-solid fa-gamepad mr-1"></i> ระบบติดตามและแจ้งของหายสไตล์เรโทร 8-Bit
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sync & Audio Controls -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Google Sheet Status Pill -->
+                    <button id="btn-sync-modal" onclick="openSyncModal()" class="pixel-btn text-xs px-3 py-2 bg-purple-900 text-purple-200 hover:bg-purple-800 flex items-center gap-2">
+                        <span id="sync-status-dot" class="w-3 h-3 rounded-full bg-yellow-400 inline-block border border-black"></span>
+                        <span id="sync-status-text" class="font-bold">โหมดในเครื่อง (Local)</span>
+                        <i class="fa-solid fa-gear ml-1"></i>
+                    </button>
+
+                    <!-- Audio Toggle Button -->
+                    <button id="btn-audio-toggle" onclick="toggleAudio()" class="pixel-btn px-3 py-2 bg-slate-800 text-yellow-400 hover:bg-slate-700 text-xs">
+                        <i id="audio-icon" class="fa-solid fa-volume-high"></i>
+                    </button>
+
+                    <!-- Add New Item Button -->
+                    <button onclick="openAddModal()" class="pixel-btn pixel-btn-success text-xs md:text-sm px-4 py-2 font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>+ แจ้งเรื่องใหม่</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- STATS DASHBOARD ROW -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div class="pixel-box-light p-3 md:p-4 text-center border-l-4 border-l-cyan-400">
+                <p class="text-xs text-gray-400 font-mono">รายการทั้งหมด</p>
+                <p id="stat-total" class="font-pixel text-xl md:text-2xl text-cyan-400 mt-1">0</p>
+            </div>
+            <div class="pixel-box-light p-3 md:p-4 text-center border-l-4 border-l-pink-500">
+                <p class="text-xs text-gray-400 font-mono">กำลังตามหา (Lost)</p>
+                <p id="stat-lost" class="font-pixel text-xl md:text-2xl text-pink-500 mt-1">0</p>
+            </div>
+            <div class="pixel-box-light p-3 md:p-4 text-center border-l-4 border-l-green-400">
+                <p class="text-xs text-gray-400 font-mono">เก็บได้ / เจอแล้ว</p>
+                <p id="stat-found" class="font-pixel text-xl md:text-2xl text-green-400 mt-1">0</p>
+            </div>
+            <div class="pixel-box-light p-3 md:p-4 text-center border-l-4 border-l-yellow-400">
+                <p class="text-xs text-gray-400 font-mono">ยอดเงินรางวัลรวม</p>
+                <p id="stat-bounty" class="font-pixel text-lg md:text-xl text-yellow-400 mt-1">฿0</p>
+            </div>
+        </div>
+
+        <!-- SEARCH & FILTER TOOLBAR -->
+        <div class="pixel-box p-4 mb-6 bg-[#1f153a]">
+            <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+                
+                <!-- Search Box -->
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400"></i>
+                    <input type="text" id="search-input" oninput="handleSearch()" placeholder="ค้นหาชื่อสิ่งของ, สถานที่, รายละเอียด..." 
+                        class="pixel-input w-full pl-9 pr-4 py-2 text-sm">
+                </div>
+
+                <!-- Status Filter Tabs -->
+                <div class="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0">
+                    <button onclick="setFilter('all')" id="filter-btn-all" class="filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-cyan-400 text-black">
+                        ทั้งหมด
+                    </button>
+                    <button onclick="setFilter('lost')" id="filter-btn-lost" class="filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-slate-800 text-pink-400">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i>ของหาย
+                    </button>
+                    <button onclick="setFilter('found')" id="filter-btn-found" class="filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-slate-800 text-green-400">
+                        <i class="fa-solid fa-hand-holding-heart mr-1"></i>พบของ
+                    </button>
+                    <button onclick="setFilter('returned')" id="filter-btn-returned" class="filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-slate-800 text-purple-300">
+                        <i class="fa-solid fa-check-double mr-1"></i>คืนแล้ว
+                    </button>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div class="w-full md:w-48">
+                    <select id="category-filter" onchange="handleSearch()" class="pixel-input w-full py-2 px-3 text-xs bg-[#150d2a]">
+                        <option value="">ทุกหมวดหมู่ (All)</option>
+                        <option value="electronics">📱 ไอที / อิเล็กทรอนิกส์</option>
+                        <option value="documents">📄 เอกสาร / บัตร</option>
+                        <option value="keys">🔑 กุญแจ / คีย์การ์ด</option>
+                        <option value="pets">🐶 สัตว์เลี้ยง</option>
+                        <option value="accessories">👜 กระเป๋า / เครื่องแต่งกาย</option>
+                        <option value="others">📦 อื่นๆ</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ITEMS GRID CONTAINER -->
+        <main>
+            <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Item Cards Rendered Here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden pixel-box p-12 text-center my-8">
+                <i class="fa-solid fa-ghost text-5xl text-purple-400 mb-3 animate-bounce"></i>
+                <h3 class="font-pixel text-lg text-yellow-300 mb-2">ไม่พบรายการข้อมูล</h3>
+                <p class="text-sm text-gray-400">ลองเปลี่ยนคำค้นหา หรือกดปุ่ม "+ แจ้งเรื่องใหม่" ด้านบนเพื่อเพิ่มข้อมูล</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: ADD NEW ITEM MODAL -->
+    <div id="add-modal" class="fixed inset-0 z-40 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="pixel-box w-full max-w-lg p-5 md:p-6 bg-[#201538] max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-3 mb-4 border-b-2 border-black">
+                <h3 class="font-pixel text-sm md:text-base text-yellow-400 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> แจ้งของหาย / พบสิ่งของ
+                </h3>
+                <button onclick="closeAddModal()" class="text-gray-400 hover:text-white text-xl font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="add-item-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                
+                <!-- Type Selection (Lost vs Found) -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-2">ประเภทรายการ *</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="pixel-btn cursor-pointer p-2.5 text-center bg-slate-800 rounded border-2 border-black flex items-center justify-center gap-2">
+                            <input type="radio" name="type" value="lost" checked class="accent-pink-500">
+                            <span class="text-xs font-bold text-pink-400">💔 ของหาย (Lost)</span>
+                        </label>
+                        <label class="pixel-btn cursor-pointer p-2.5 text-center bg-slate-800 rounded border-2 border-black flex items-center justify-center gap-2">
+                            <input type="radio" name="type" value="found" class="accent-green-500">
+                            <span class="text-xs font-bold text-green-400">🎁 พบของ (Found)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">ชื่อสิ่งของ *</label>
+                    <input type="text" id="form-title" required placeholder="เช่น กระเป๋าสตางค์สีดำ, พวงกุญแจแมว" 
+                        class="pixel-input w-full p-2.5 text-sm">
+                </div>
+
+                <!-- Category & Date Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 mb-1">หมวดหมู่ *</label>
+                        <select id="form-category" required class="pixel-input w-full p-2.5 text-xs bg-[#150d2a]">
+                            <option value="electronics">📱 ไอที / อิเล็กทรอนิกส์</option>
+                            <option value="documents">📄 เอกสาร / บัตร</option>
+                            <option value="keys">🔑 กุญแจ / คีย์การ์ด</option>
+                            <option value="pets">🐶 สัตว์เลี้ยง</option>
+                            <option value="accessories">👜 กระเป๋า / เครื่องแต่งกาย</option>
+                            <option value="others">📦 อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 mb-1">วันที่ หาย/พบ *</label>
+                        <input type="date" id="form-date" required class="pixel-input w-full p-2 text-xs">
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">สถานที่ *</label>
+                    <input type="text" id="form-location" required placeholder="เช่น โรงอาหารชั้น 2, ป้ายรถเมล์หน้าตึก A" 
+                        class="pixel-input w-full p-2.5 text-sm">
+                </div>
+
+                <!-- Contact & Reward Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 mb-1">ข้อมูลติดต่อ (เบอร์/Line) *</label>
+                        <input type="text" id="form-contact" required placeholder="เช่น 081-234-XXXX / ID: pixel123" 
+                            class="pixel-input w-full p-2.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 mb-1">เงินรางวัลนำส่ง (บาท)</label>
+                        <input type="number" id="form-reward" min="0" placeholder="0 (ถ้ามี)" 
+                            class="pixel-input w-full p-2.5 text-sm">
+                    </div>
+                </div>
+
+                <!-- Image URL -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">ลิงก์รูปภาพ (Image URL)</label>
+                    <input type="url" id="form-image" placeholder="https://example.com/image.jpg (ถ้ามี)" 
+                        class="pixel-input w-full p-2.5 text-xs">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 mb-1">รายละเอียดเพิ่มเติม</label>
+                    <textarea id="form-description" rows="3" placeholder="ระบุลักษณะจุดสังเกต หรือรายละเอียดอื่นๆเพิ่มเติม..." 
+                        class="pixel-input w-full p-2.5 text-xs"></textarea>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeAddModal()" class="pixel-btn px-4 py-2 bg-gray-700 text-white text-xs">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="pixel-btn pixel-btn-success px-5 py-2 text-xs font-bold">
+                        <i class="fa-solid fa-save mr-1"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: GOOGLE SHEETS SETUP & CONNECT MODAL -->
+    <div id="sync-modal" class="fixed inset-0 z-40 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="pixel-box w-full max-w-2xl p-5 md:p-6 bg-[#1a1030] max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-3 mb-4 border-b-2 border-black">
+                <h3 class="font-pixel text-sm md:text-base text-cyan-400 flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> เชื่อมต่อ Google Sheets
+                </h3>
+                <button onclick="closeSyncModal()" class="text-gray-400 hover:text-white text-xl font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Web App URL Config Input -->
+            <div class="mb-6 p-4 bg-[#261748] border-2 border-black">
+                <label class="block text-xs font-bold text-yellow-300 mb-2">
+                    <i class="fa-solid fa-link"></i> Google Apps Script Web App URL:
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="sheet-url-input" placeholder="https://script.google.com/macros/s/.../exec" 
+                        class="pixel-input flex-1 p-2 text-xs">
+                    <button onclick="saveAndSyncSheet()" class="pixel-btn pixel-btn-primary px-4 py-2 text-xs font-bold">
+                        เชื่อมต่อ
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-2">
+                    * เมื่อเชื่อมต่อแล้ว ข้อมูลการแจ้งของหายทั้งหมดจะดึงและบันทึกตรงเข้าตาราง Google Sheet ของคุณทันที!
+                </p>
+            </div>
+
+            <!-- Step-by-step Setup Guide -->
+            <div class="space-y-4 text-xs text-gray-300">
+                <h4 class="font-bold text-yellow-400 text-sm border-b border-gray-700 pb-1">
+                    <i class="fa-solid fa-list-check"></i> วิธีตั้งค่า Google Sheet ใน 2 นาที:
+                </h4>
+                <ol class="list-decimal list-inside space-y-2 leading-relaxed">
+                    <li>เปิด <a href="https://sheets.google.com" target="_blank" class="text-cyan-400 underline">Google Sheets</a> สร้างสเปรดชีตใหม่</li>
+                    <li>ไปที่เมนู <b class="text-white">ส่วนขยาย (Extensions)</b> ➔ <b class="text-white">Apps Script</b></li>
+                    <li>ลบโค้ดเดิมออกทั้งหมด แล้วนำโค้ดด้านล่างนี้ไปวางแทนที่:</li>
+                </ol>
+
+                <!-- Script Code Box with Copy Button -->
+                <div class="relative">
+                    <pre class="bg-black text-green-400 p-3 rounded text-[11px] font-mono overflow-x-auto border border-gray-700 max-h-48" id="gas-code-block">
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var result = [];
+  if (data.length > 1) {
+    var headers = data[0];
+    for (var i = 1; i < data.length; i++) {
+      var obj = {};
+      for (var j = 0; j < headers.length; j++) {
+        obj[headers[j]] = data[i][j];
+      }
+      result.push(obj);
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  // Create headers if empty
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["id", "type", "title", "category", "location", "date", "contact", "reward", "status", "description", "imageUrl", "createdAt"]);
+  }
+  var data = JSON.parse(e.postData.contents);
+  if (data.action === 'add') {
+    sheet.appendRow([data.id, data.type, data.title, data.category, data.location, data.date, data.contact, data.reward, data.status, data.description, data.imageUrl, data.createdAt]);
+    return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+  } else if (data.action === 'updateStatus') {
+    var values = sheet.getDataRange().getValues();
+    for (var i = 1; i < values.length; i++) {
+      if (values[i][0] == data.id) {
+        sheet.getRange(i + 1, 9).setValue(data.status); // Column 9 = Status
+        break;
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({status: 'success'})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+</pre>
+                    <button onclick="copyGasCode()" class="pixel-btn absolute top-2 right-2 bg-gray-800 text-cyan-300 text-[10px] px-2 py-1">
+                        <i class="fa-solid fa-copy"></i> คัดลอกโค้ด
+                    </button>
+                </div>
+
+                <ol start="4" class="list-decimal list-inside space-y-2 leading-relaxed">
+                    <li>กดปุ่ม <b class="text-white">ทำให้ใช้งานได้ (Deploy)</b> ➔ <b class="text-white">การทำให้ใช้งานได้ใหม่ (New deployment)</b></li>
+                    <li>เลือกประเภทเป็น <b class="text-white">เว็บแอป (Web app)</b></li>
+                    <li>ตั้งค่า <b class="text-white">ผู้มีสิทธิ์เข้าถึง (Who has access)</b> เป็น <b class="text-yellow-300">ทุกคน (Anyone)</b></li>
+                    <li>กด Deploy ก๊อปปี้ <b class="text-cyan-400">Web App URL</b> มาวางในช่องด้านบนแล้วกด "เชื่อมต่อ" ได้เลย!</li>
+                </ol>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeSyncModal()" class="pixel-btn px-4 py-2 bg-gray-700 text-white text-xs">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ITEM DETAIL MODAL -->
+    <div id="detail-modal" class="fixed inset-0 z-40 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="pixel-box w-full max-w-lg p-5 bg-[#201538]">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b-2 border-black">
+                <span id="detail-type-badge" class="font-pixel text-xs px-2 py-1 border border-black"></span>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-white text-xl font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="detail-content" class="space-y-4">
+                <!-- Content generated dynamically -->
+            </div>
+
+            <div class="mt-6 flex justify-between items-center pt-3 border-t border-gray-700">
+                <div id="detail-actions" class="flex gap-2"></div>
+                <button onclick="closeDetailModal()" class="pixel-btn px-4 py-2 bg-gray-700 text-white text-xs">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIXEL TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        /* ----------------------------------------------------
+         * APP STATE MANAGEMENT & INITIALIZATION
+         * ---------------------------------------------------- */
+        let items = [];
+        let googleSheetUrl = localStorage.getItem('pixel_lost_found_sheet_url') || '';
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let audioEnabled = true;
+
+        // Web Audio API Context for 8-bit Sound Effects
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'update') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(600, now + 0.12);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now);
+                    osc.stop(now + 0.12);
+                }
+            } catch (e) {
+                // Audio context fallback
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audio-icon');
+            if (audioEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                showToast('เปิดเสียงเอฟเฟกต์ 8-Bit', 'info');
+                playSound('click');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+                showToast('ปิดเสียงเอฟเฟกต์', 'info');
+            }
+        }
+
+        // Mock Initial Data if no local data exists
+        const mockData = [
+            {
+                id: "ITEM-101",
+                type: "lost",
+                title: "กระเป๋าสตางค์หนังสีน้ำตาล",
+                category: "accessories",
+                location: "โรงอาหารกลาง ชั้น 1",
+                date: "2026-10-08",
+                contact: "089-123-4567 (คุณเอ)",
+                reward: 500,
+                status: "missing",
+                description: "ภายในมีบัตรประชาชน ชื่อ นายสมชาย และบัตรเอทีเอ็ม",
+                imageUrl: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&q=80",
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: "ITEM-102",
+                type: "found",
+                title: "หูฟัง Bluetooth AirPods Pro",
+                category: "electronics",
+                location: "ห้องสำนักโดม อาคารเรียนรวม",
+                date: "2026-10-09",
+                contact: "จุดรับแจ้งของหาย รปภ. ประตู 2",
+                reward: 0,
+                status: "found",
+                description: "พบตกอยู่ใต้เก้าอี้ พร้อมเคสสีชมพูลายพิกเซล",
+                imageUrl: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400&q=80",
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: "ITEM-103",
+                type: "lost",
+                title: "กุญแจรถยนต์ Honda พร้อมรีโมท",
+                category: "keys",
+                location: "ลานจอดรถ B2",
+                date: "2026-10-07",
+                contact: "Line ID: retro_owner",
+                reward: 1000,
+                status: "returned",
+                description: "มีพวงกุญแจตุ๊กตา Yoshi สีเขียวแปะอยู่",
+                imageUrl: "",
+                createdAt: new Date().toISOString()
+            }
+        ];
+
+        // Load initial items
+        function initApp() {
+            const savedLocal = localStorage.getItem('pixel_lost_found_data');
+            if (savedLocal) {
+                try {
+                    items = JSON.parse(savedLocal);
+                } catch (e) {
+                    items = mockData;
+                }
+            } else {
+                items = mockData;
+                saveLocalData();
+            }
+
+            // Sync with Google Sheet if URL exists
+            if (googleSheetUrl) {
+                document.getElementById('sheet-url-input').value = googleSheetUrl;
+                updateSyncStatusUI('connected');
+                fetchFromGoogleSheet();
+            } else {
+                updateSyncStatusUI('local');
+            }
+
+            renderGrid();
+            updateStats();
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('pixel_lost_found_data', JSON.stringify(items));
+        }
+
+        function updateSyncStatusUI(status) {
+            const dot = document.getElementById('sync-status-dot');
+            const text = document.getElementById('sync-status-text');
+
+            if (status === 'connected') {
+                dot.className = 'w-3 h-3 rounded-full bg-green-400 inline-block border border-black animate-pulse';
+                text.innerText = 'เชื่อมต่อ Google Sheet แล้ว';
+            } else if (status === 'loading') {
+                dot.className = 'w-3 h-3 rounded-full bg-yellow-400 inline-block border border-black animate-spin';
+                text.innerText = 'กำลังซิงค์ข้อมูล...';
+            } else {
+                dot.className = 'w-3 h-3 rounded-full bg-gray-400 inline-block border border-black';
+                text.innerText = 'โหมดในเครื่อง (Local)';
+            }
+        }
+
+        /* ----------------------------------------------------
+         * GOOGLE SHEETS API SYNC FUNCTIONS
+         * ---------------------------------------------------- */
+        async function fetchFromGoogleSheet() {
+            if (!googleSheetUrl) return;
+
+            updateSyncStatusUI('loading');
+            try {
+                const res = await fetch(googleSheetUrl);
+                if (!res.ok) throw new Error('Network response error');
+                const data = await res.json();
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    items = data.map(item => ({
+                        ...item,
+                        reward: Number(item.reward) || 0
+                    }));
+                    saveLocalData();
+                    renderGrid();
+                    updateStats();
+                    showToast('ซิงค์ข้อมูลสำเร็จจาก Google Sheets!', 'success');
+                }
+                updateSyncStatusUI('connected');
+            } catch (err) {
+                console.error('Fetch Google Sheet Error:', err);
+                updateSyncStatusUI('local');
+                showToast('ไม่สามารถดึงข้อมูลจาก Google Sheet ได้ (ใช้ข้อมูลในเครื่องแทน)', 'error');
+            }
+        }
+
+        async function postToGoogleSheet(payload) {
+            if (!googleSheetUrl) return;
+
+            try {
+                // Using no-cors mode or standard text output fetching
+                await fetch(googleSheetUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                showToast('บันทึกไปยัง Google Sheet เรียบร้อยแล้ว', 'success');
+            } catch (e) {
+                console.error('Post Error:', e);
+                showToast('การส่งข้อมูลไปยัง Google Sheet ขัดข้อง', 'error');
+            }
+        }
+
+        function saveAndSyncSheet() {
+            playSound('click');
+            const inputUrl = document.getElementById('sheet-url-input').value.trim();
+            if (!inputUrl) {
+                localStorage.removeItem('pixel_lost_found_sheet_url');
+                googleSheetUrl = '';
+                updateSyncStatusUI('local');
+                showToast('ยกเลิกการเชื่อมต่อ Google Sheet แล้ว', 'info');
+                closeSyncModal();
+                return;
+            }
+
+            googleSheetUrl = inputUrl;
+            localStorage.setItem('pixel_lost_found_sheet_url', googleSheetUrl);
+            fetchFromGoogleSheet();
+            closeSyncModal();
+        }
+
+        /* ----------------------------------------------------
+         * UI RENDERING FUNCTIONS
+         * ---------------------------------------------------- */
+        function getCategoryIcon(cat) {
+            switch(cat) {
+                case 'electronics': return '<i class="fa-solid fa-mobile-screen-button text-cyan-400"></i>';
+                case 'documents': return '<i class="fa-solid fa-id-card text-yellow-400"></i>';
+                case 'keys': return '<i class="fa-solid fa-key text-orange-400"></i>';
+                case 'pets': return '<i class="fa-solid fa-paw text-pink-400"></i>';
+                case 'accessories': return '<i class="fa-solid fa-bag-shopping text-purple-400"></i>';
+                default: return '<i class="fa-solid fa-box text-green-400"></i>';
+            }
+        }
+
+        function getCategoryName(cat) {
+            switch(cat) {
+                case 'electronics': return 'ไอที / อิเล็กทรอนิกส์';
+                case 'documents': return 'เอกสาร / บัตร';
+                case 'keys': return 'กุญแจ / คีย์การ์ด';
+                case 'pets': return 'สัตว์เลี้ยง';
+                case 'accessories': return 'กระเป๋า / เครื่องแต่งกาย';
+                default: return 'อื่นๆ';
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('items-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            const selectedCat = document.getElementById('category-filter').value;
+
+            // Filter logic
+            const filtered = items.filter(item => {
+                // Status Filter
+                if (currentFilter === 'lost' && item.type !== 'lost') return false;
+                if (currentFilter === 'found' && item.type !== 'found') return false;
+                if (currentFilter === 'returned' && item.status !== 'returned') return false;
+
+                // Category Filter
+                if (selectedCat && item.category !== selectedCat) return false;
+
+                // Search Filter
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    const titleMatch = item.title.toLowerCase().includes(q);
+                    const locMatch = item.location.toLowerCase().includes(q);
+                    const descMatch = (item.description || '').toLowerCase().includes(q);
+                    return titleMatch || locMatch || descMatch;
+                }
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'pixel-box p-4 bg-[#21163b] hover:bg-[#281b47] transition flex flex-col justify-between relative group';
+
+                // Status Badge & Border color
+                let typeBadgeHTML = '';
+                if (item.status === 'returned') {
+                    typeBadgeHTML = `<span class="bg-purple-900 text-purple-200 border border-purple-400 text-[10px] font-pixel px-2 py-0.5">✔ คืนเจ้าของแล้ว</span>`;
+                } else if (item.type === 'lost') {
+                    typeBadgeHTML = `<span class="bg-pink-900 text-pink-200 border border-pink-500 text-[10px] font-pixel px-2 py-0.5 animate-pulse">💔 ตามหาอยู่</span>`;
+                } else {
+                    typeBadgeHTML = `<span class="bg-green-900 text-green-200 border border-green-500 text-[10px] font-pixel px-2 py-0.5">🎁 เก็บได้</span>`;
+                }
+
+                // Fallback Image or Pixel Placeholder
+                const imageSrc = item.imageUrl ? item.imageUrl : `https://placehold.co/400x220/1d1333/00f0ff?text=${encodeURIComponent(item.title)}`;
+
+                card.innerHTML = `
+                    <div>
+                        <!-- Header Badges -->
+                        <div class="flex items-center justify-between mb-2">
+                            ${typeBadgeHTML}
+                            <span class="text-xs text-gray-400 font-mono">
+                                ${getCategoryIcon(item.category)} ${getCategoryName(item.category)}
+                            </span>
+                        </div>
+
+                        <!-- Card Image -->
+                        <div class="w-full h-36 bg-black border-2 border-black overflow-hidden mb-3 relative group-hover:border-cyan-400 transition">
+                            <img src="${imageSrc}" onerror="this.src='https://placehold.co/400x220/1d1333/00f0ff?text=Pixel+Art'" 
+                                alt="${item.title}" class="w-full h-full object-cover">
+                            ${item.reward > 0 ? `
+                                <div class="absolute bottom-2 right-2 bg-yellow-400 text-black text-xs font-bold font-pixel px-2 py-1 border border-black shadow-[2px_2px_0px_#000]">
+                                    🏆 ฿${item.reward.toLocaleString()}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Item Title -->
+                        <h3 class="font-bold text-base text-yellow-300 mb-1 line-clamp-1">
+                            ${item.title}
+                        </h3>
+
+                        <!-- Location & Date -->
+                        <div class="space-y-1 text-xs text-gray-300 mb-3">
+                            <p class="flex items-center gap-1.5 text-cyan-300">
+                                <i class="fa-solid fa-location-dot text-pink-400 w-4"></i>
+                                <span class="truncate">${item.location}</span>
+                            </p>
+                            <p class="flex items-center gap-1.5 text-gray-400">
+                                <i class="fa-solid fa-calendar-days text-yellow-400 w-4"></i>
+                                <span>${item.date}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-3 border-t border-gray-700 flex items-center justify-between gap-2">
+                        <button onclick="openDetailModal('${item.id}')" class="pixel-btn px-3 py-1.5 bg-slate-800 text-cyan-300 text-xs font-bold hover:bg-slate-700 flex-1">
+                            <i class="fa-solid fa-eye mr-1"></i> รายละเอียด
+                        </button>
+                        
+                        ${item.status !== 'returned' ? `
+                            <button onclick="quickUpdateStatus('${item.id}', 'returned')" class="pixel-btn pixel-btn-success px-3 py-1.5 text-xs font-bold" title="ทักว่าส่งคืนเรียบร้อย">
+                                <i class="fa-solid fa-check"></i> คืนแล้ว
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStats() {
+            const total = items.length;
+            const lost = items.filter(i => i.type === 'lost' && i.status !== 'returned').length;
+            const found = items.filter(i => i.type === 'found' || i.status === 'returned').length;
+            const bounty = items.reduce((sum, i) => sum + (Number(i.reward) || 0), 0);
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-lost').innerText = lost;
+            document.getElementById('stat-found').innerText = found;
+            document.getElementById('stat-bounty').innerText = '฿' + bounty.toLocaleString();
+        }
+
+        function setFilter(filterType) {
+            playSound('click');
+            currentFilter = filterType;
+
+            // Reset tab styles
+            document.querySelectorAll('.filter-tab').forEach(btn => {
+                btn.className = 'filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-slate-800 text-gray-400';
+            });
+
+            const activeBtn = document.getElementById(`filter-btn-${filterType}`);
+            if (activeBtn) {
+                if (filterType === 'all') activeBtn.className = 'filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-cyan-400 text-black';
+                if (filterType === 'lost') activeBtn.className = 'filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-pink-500 text-white';
+                if (filterType === 'found') activeBtn.className = 'filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-green-400 text-black';
+                if (filterType === 'returned') activeBtn.className = 'filter-tab pixel-btn px-3 py-1.5 text-xs font-bold bg-purple-500 text-white';
+            }
+
+            renderGrid();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            renderGrid();
+        }
+
+        /* ----------------------------------------------------
+         * FORM & MODAL ACTIONS
+         * ---------------------------------------------------- */
+        function openAddModal() {
+            playSound('click');
+            document.getElementById('add-item-form').reset();
+            // Set default date to today
+            document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            playSound('click');
+            document.getElementById('add-modal').classList.add('hidden');
+        }
+
+        function openSyncModal() {
+            playSound('click');
+            document.getElementById('sync-modal').classList.remove('hidden');
+        }
+
+        function closeSyncModal() {
+            playSound('click');
+            document.getElementById('sync-modal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            playSound('success');
+
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const title = document.getElementById('form-title').value.trim();
+            const category = document.getElementById('form-category').value;
+            const date = document.getElementById('form-date').value;
+            const location = document.getElementById('form-location').value.trim();
+            const contact = document.getElementById('form-contact').value.trim();
+            const reward = Number(document.getElementById('form-reward').value) || 0;
+            const imageUrl = document.getElementById('form-image').value.trim();
+            const description = document.getElementById('form-description').value.trim();
+
+            const newItem = {
+                id: 'PX-' + Date.now().toString().slice(-6),
+                type,
+                title,
+                category,
+                location,
+                date,
+                contact,
+                reward,
+                status: type === 'lost' ? 'missing' : 'found',
+                description,
+                imageUrl,
+                createdAt: new Date().toISOString()
+            };
+
+            items.unshift(newItem);
+            saveLocalData();
+            renderGrid();
+            updateStats();
+
+            // Post to Google Sheet if connected
+            if (googleSheetUrl) {
+                postToGoogleSheet({
+                    action: 'add',
+                    ...newItem
+                });
+            }
+
+            showToast('บันทึกแจ้งรายการสำเร็จแล้ว!', 'success');
+            closeAddModal();
+        }
+
+        function quickUpdateStatus(id, newStatus) {
+            playSound('update');
+            const item = items.find(i => i.id === id);
+            if (item) {
+                item.status = newStatus;
+                saveLocalData();
+                renderGrid();
+                updateStats();
+
+                if (googleSheetUrl) {
+                    postToGoogleSheet({
+                        action: 'updateStatus',
+                        id: id,
+                        status: newStatus
+                    });
+                }
+
+                showToast(`อัปเดตสถานะเป็น "${newStatus === 'returned' ? 'คืนแล้ว' : newStatus}"`, 'success');
+            }
+        }
+
+        function openDetailModal(id) {
+            playSound('click');
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('detail-modal');
+            const typeBadge = document.getElementById('detail-type-badge');
+            const content = document.getElementById('detail-content');
+            const actions = document.getElementById('detail-actions');
+
+            if (item.type === 'lost') {
+                typeBadge.className = 'font-pixel text-xs px-2 py-1 bg-pink-900 text-pink-300 border border-pink-500';
+                typeBadge.innerText = '💔 รายการของหาย (LOST)';
+            } else {
+                typeBadge.className = 'font-pixel text-xs px-2 py-1 bg-green-900 text-green-300 border border-green-500';
+                typeBadge.innerText = '🎁 รายการพบของ (FOUND)';
+            }
+
+            const imgHTML = item.imageUrl ? `
+                <div class="w-full h-48 bg-black border-2 border-black overflow-hidden mb-3">
+                    <img src="${item.imageUrl}" class="w-full h-full object-cover">
+                </div>
+            ` : '';
+
+            content.innerHTML = `
+                ${imgHTML}
+                <h2 class="font-bold text-xl text-yellow-300 mb-2">${item.title}</h2>
+                
+                <div class="space-y-2 bg-[#170e28] p-3 border border-black text-xs">
+                    <p class="text-cyan-300"><b class="text-gray-400">หมวดหมู่:</b> ${getCategoryName(item.category)}</p>
+                    <p class="text-cyan-300"><b class="text-gray-400">สถานที่:</b> ${item.location}</p>
+                    <p class="text-cyan-300"><b class="text-gray-400">วันที่:</b> ${item.date}</p>
+                    <p class="text-yellow-400 font-bold"><b class="text-gray-400">ข้อมูลติดต่อ:</b> ${item.contact}</p>
+                    ${item.reward > 0 ? `<p class="text-green-400 font-bold"><b class="text-gray-400">สินน้ำใจ/เงินรางวัล:</b> ฿${item.reward.toLocaleString()} บาท</p>` : ''}
+                </div>
+
+                <div class="mt-3">
+                    <p class="text-xs font-bold text-gray-400 mb-1">รายละเอียดเพิ่มเติม:</p>
+                    <p class="text-xs text-gray-200 bg-[#170e28] p-2.5 border border-black min-h-[60px]">
+                        ${item.description || 'ไม่มีรายละเอียดเพิ่มเติม'}
+                    </p>
+                </div>
+            `;
+
+            actions.innerHTML = `
+                ${item.status !== 'returned' ? `
+                    <button onclick="quickUpdateStatus('${item.id}', 'returned'); closeDetailModal();" class="pixel-btn pixel-btn-success px-3 py-1.5 text-xs font-bold">
+                        <i class="fa-solid fa-check-double mr-1"></i> ทำเป็นคืนแล้ว
+                    </button>
+                ` : '<span class="text-xs text-purple-400 font-bold"><i class="fa-solid fa-circle-check"></i> รายการนี้คืนแล้ว</span>'}
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            playSound('click');
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        function copyGasCode() {
+            playSound('click');
+            const codeText = document.getElementById('gas-code-block').innerText;
+            
+            // Clipboard fallback for frame restrictions
+            const textarea = document.createElement('textarea');
+            textarea.value = codeText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast('คัดลอกโค้ด Apps Script เรียบร้อย!', 'success');
+        }
+
+        /* ----------------------------------------------------
+         * PIXEL TOAST SYSTEM
+         * ---------------------------------------------------- */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let bgColor = 'bg-slate-800 text-cyan-300 border-cyan-400';
+            if (type === 'success') bgColor = 'bg-green-950 text-green-300 border-green-400';
+            if (type === 'error') bgColor = 'bg-red-950 text-red-300 border-red-500';
+
+            toast.className = `pixel-box p-3 text-xs font-bold border-2 ${bgColor} shadow-[4px_4px_0px_#000] flex items-center gap-2 transform transition-all duration-200 translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 200);
+            }, 3000);
+        }
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
